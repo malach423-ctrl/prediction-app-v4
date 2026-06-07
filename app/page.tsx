@@ -1,14 +1,18 @@
-import { getMatchesWithPredictions, Match } from '@/lib/supabase'
-import PredictionTable from '@/components/PredictionTable'
+import { getMatchesWithPredictions, getLeagues, Match } from '@/lib/supabase'
+import PredictionClient from '@/components/PredictionClient'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   let matches: Match[] = []
+  let leagues: string[] = ['All']
   let error = false
 
   try {
-    matches = await getMatchesWithPredictions()
+    [matches, leagues] = await Promise.all([
+      getMatchesWithPredictions(),
+      getLeagues(),
+    ])
   } catch (e) {
     error = true
   }
@@ -24,21 +28,22 @@ export default async function Home() {
             Professional match analysis · 1X2 · Goals · Correct Score
           </p>
         </div>
-        <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', background: '#eaf3de', color: '#3b6d11', borderRadius: '20px', padding: '4px 12px' }}>
-          ● Live
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <a href="/admin" style={{ fontSize: '11px', color: '#888780', textDecoration: 'none', fontFamily: 'var(--font-mono)', border: '0.5px solid #d3d1c7', padding: '4px 12px', borderRadius: '20px' }}>
+            Admin ↗
+          </a>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', background: '#eaf3de', color: '#3b6d11', borderRadius: '20px', padding: '4px 12px' }}>
+            ● Live
+          </span>
+        </div>
       </header>
 
       {error ? (
         <div style={{ textAlign: 'center', padding: '3rem', color: '#888780' }}>
           Unable to load predictions. Please try again later.
         </div>
-      ) : matches.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#888780' }}>
-          No matches scheduled for today.
-        </div>
       ) : (
-        <PredictionTable matches={matches} />
+        <PredictionClient initialMatches={matches} leagues={leagues} />
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '2rem' }}>
@@ -59,7 +64,7 @@ export default async function Home() {
       </div>
 
       <p style={{ fontSize: '11px', color: '#b4b2a9', textAlign: 'center', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '0.5px solid #d3d1c7', fontFamily: 'var(--font-mono)' }}>
-        Predictions updated every 5 minutes · Data powered by official leagues
+        Predictions auto-refresh every 60 seconds · Data powered by official leagues
       </p>
     </main>
   )
