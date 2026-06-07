@@ -49,7 +49,7 @@ export async function getLeagues(): Promise<string[]> {
     .from('matches')
     .select('league')
   if (error) throw error
-  const leagues = [...new Set(data.map((m: any) => m.league))] as string[]
+  const leagues = Array.from(new Set(data.map((m: any) => m.league))) as string[]
   return ['All', ...leagues.sort()]
 }
 
